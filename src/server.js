@@ -5,8 +5,6 @@ import bodyParser from "body-parser";
 import route from "./router/index.js";
 import { PORT } from "./config/globleKey.js";
 const app = express();
-
-
 app.use(cors());
 app.use(bodyParser.json({ extended: true }));
 app.use(
