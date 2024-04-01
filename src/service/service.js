@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import con from "../config/db.js";
 import jimp from "jimp";
 import sharp from "sharp";
-import path from "path";
+import path, { resolve } from "path";
 import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -12,7 +12,7 @@ export const UploadImageToServer = async (files) => {
   return new Promise(async (resolve, reject) => {
     try {
       const imageBuffer = Buffer.from(files, "base64");
-      const imageName = "IMG-" + Date.now()+ ".jpeg";
+      const imageName = "IMG-" + Date.now() + ".jpeg";
       const imgPath = `${__dirname}/../../assets/images/${imageName}`;
       const jpegBuffer = await sharp(imageBuffer).toBuffer();
       const image = await jimp.read(jpegBuffer);
@@ -80,6 +80,28 @@ export const Decrypt = async (data) => {
   const result = decrypt.toString(CryptoJS.enc.Utf8);
   return result;
 };
+export const GenerateRefreshToken = async (refreshToken) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      jwt.verify(refreshToken, SECREAT_KEY, async function (err, decode) {
+        if (err) throw err;
+        const decrypt = await Decrypt(decode["id"]);
+        const mysql = "Select * from user where uuid=?";
+        con.query(mysql, decrypt, async function (err, user) {
+          if (err) throw err;
+          var data = {
+            id: user[0]["uuid"],
+            role: user[0]["role"],
+          };
+          const result = await GenerateToken(data);
+          resolve(result);
+        });
+      });
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
 export const GenerateToken = async (data) => {
   var paylod = {
     id: await encrypt(data.id),
@@ -93,7 +115,6 @@ export const GenerateToken = async (data) => {
   const refreshToken = jwt.sign(paylod_refresh, SECREAT_KEY, {
     expiresIn: "1d",
   });
-  console.log(token);
-  console.log(refreshToken);
+
   return { token, refreshToken };
 };

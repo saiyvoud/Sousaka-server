@@ -5,7 +5,7 @@ cloudinary.config({
   api_secret: "zGxo1lQO009p1EjeJoXWrnfrQuo",
 });
 
-export const UloadToCloudinary = async (files, oldImage) => {
+export const UploadToCloudinary = async (files, oldImage) => {
   try {
     if (oldImage) {
       const spliturl = oldImage.split("/");

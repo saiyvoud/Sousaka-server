@@ -8,14 +8,15 @@ import {
   GenerateToken,
   Decrypt,
   UploadImageToServer,
+  encrypt,
+  GenerateRefreshToken,
 } from "../service/service.js";
-import { UloadToCloudinary } from "../config/cloudinary.js";
+import { UploadToCloudinary } from "../config/cloudinary.js";
 
 export default class UserController {
   static userInfo = async (req, res) => {
     try {
       const userId = req.user;
-      console.log("=====>", userId);
       const mysql = "Select * from user where uuid =?";
       con.query(mysql, userId, function (err, rows) {
         if (err) throw err;
@@ -88,7 +89,7 @@ export default class UserController {
           return sendError(res, 400, EMessage.EmailAleardy);
         }
         // const image_url = await UloadToCloudinary(image.profile.data);
-        const image_url = await UploadImageToServer(image.profile.data);
+        const image_url = await UploadToCloudinary(image.profile.data);
         const genpassword = await GeneratePassword(password);
 
         const uuid = uuidv4();
@@ -120,6 +121,7 @@ export default class UserController {
       return res.status(500).json({ message: EMessage.server, error });
     }
   };
+
   static forgotPassword = async (req, res) => {
     try {
       const { email, newPassword } = req.body;
@@ -145,6 +147,100 @@ export default class UserController {
           if (error) throw error;
           return sendSuccess(res, "Forgot Success");
         });
+      });
+    } catch (error) {
+      return sendError(res, 500, EMessage.server, error);
+    }
+  };
+  static changePassword = (req, res) => {
+    try {
+      const userId = req.user;
+      const { newPassword, oldPassword } = req.body;
+      if (!newPassword || !oldPassword) {
+        return sendError(res, 400, "newPassword and oldPassword is required!");
+      }
+      const mysql = "Select * from user where uuid =?";
+      con.query(mysql, userId, async function (err, result) {
+        if (err) throw err;
+
+        const decryptPassword = await Decrypt(result[0]["password"]);
+        if (oldPassword != decryptPassword) {
+          return sendError(res, 400, EMessage.passwordNotMatch);
+        }
+        const password = await GeneratePassword(newPassword);
+        const update = "UPDATE user set password =? WHERE uuid =?";
+        con.query(update, [password, userId], function (error) {
+          if (error) throw error;
+
+          return sendSuccess(res, SMessage.update);
+        });
+      });
+    } catch (error) {
+      return sendError(res, 500, EMessage.server, error);
+    }
+  };
+  static updateProfile = async (req, res) => {
+    try {
+      const userId = req.user;
+      const { email } = req.body;
+      if (!email) {
+        return sendError(res, 400, "email is required!");
+      }
+      const mysql = "Select * from user where uuid =?";
+      con.query(mysql, userId, async function (err, result) {
+        if (err) throw err;
+        if (email == result[0]["email"]) {
+          return sendError(res, 400, EMessage.EmailAleardy);
+        }
+        const update = "UPDATE user set email =? WHERE uuid =?";
+        con.query(update, [email, userId], function (error) {
+          if (error) throw error;
+          return sendSuccess(res, SMessage.update);
+        });
+      });
+    } catch (error) {
+      return sendError(res, 500, EMessage.server, error);
+    }
+  };
+  static updateProfileImage = async (req, res) => {
+    try {
+      const userId = req.user;
+      const image = req.files;
+      if (!image) {
+        return sendError(res, 400, "profile is required!");
+      }
+      const image_url = await UploadToCloudinary(image.profile.data);
+      if (!image_url) {
+        return sendError(res, 404, "Error Upload Profile!");
+      }
+      const update = "UPDATE user set profile =? WHERE uuid =?";
+      con.query(update, [image_url, userId], function (err) {
+        if (err) throw err;
+        return sendSuccess(res, SMessage.update);
+      });
+    } catch (error) {
+      return sendError(res, 500, EMessage.server, error);
+    }
+  };
+  static refreshToken = async (req, res) => {
+    try {
+      const { refreshToken } = req.body;
+      if (!refreshToken) {
+        return sendError(res, 400, "refreshToken is required!");
+      }
+      const data = await GenerateRefreshToken(refreshToken);
+      return sendSuccess(res, "Success", data);
+    } catch (error) {
+      return sendError(res, 500, EMessage.server, error);
+    }
+  };
+  static deleteUser = (req, res) => {
+    try {
+      const userId = req.user;
+      const mysql = `DELETE FROM user WHERE uuid = ?`;
+      con.query(mysql, userId, function (err) {
+        if (err) throw err;
+        return sendSuccess(res, SMessage.delete);
       });
     } catch (error) {
       return sendError(res, 500, EMessage.server, error);
