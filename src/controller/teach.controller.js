@@ -64,8 +64,7 @@ export default class TeacherController {
         if (result.length > 0) {
           return sendError(res, 400, "Teacher ID is already");
         }
-        const mysql =
-          "insert into teacher (tID, tUuid,tType, tName, tSurname, age, gender, tel,user_id,createdAt,updatedAt) values (?,?,?,?,?,?,?,?,?,?,?)";
+        const mysql = "insert into teacher (tID, tUuid,tType, tName, tSurname, age, gender, tel,user_id,createdAt,updatedAt) values (?,?,?,?,?,?,?,?,?,?,?)";
         const tUuid = uuid();
         var date = new Date()
           .toISOString()
@@ -74,21 +73,12 @@ export default class TeacherController {
 
         con.query(
           mysql,
-          [
-            tID,
-            tUuid,
-            tType,
-            tName,
-            tSurname,
-            age,
-            gender,
-            tel,
-            userId,
-            date,
-            date,
-          ],
-          function (err2) {
+          [tID, tUuid, tType, tName, tSurname,age, gender, tel, userId, date, date],
+          function (err2,result2) {
             if (err2) throw err2;
+            if(result2 == null){
+              return sendError(res, 500, EMessage.server, error);
+            }
             return sendCreate(res, SMessage.insert);
           }
         );

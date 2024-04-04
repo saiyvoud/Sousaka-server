@@ -31,38 +31,22 @@ export const VerifyToken = async (token) => {
   return new Promise(async (resolve, reject) => {
     try {
       jwt.verify(token, SECREAT_KEY, async function (err, decode) {
-        if (err) throw err;
+        if (err) return resolve(false);
+
         const decrypt = await Decrypt(decode["id"]);
 
         const mysql = "Select uuid from user where uuid=?";
         con.query(mysql, decrypt, function (err, user) {
-          if (err) throw err;
+          if (err) return resolve(false);
 
           resolve(user[0]["uuid"]);
         });
       });
     } catch (error) {
-      reject("Verify Faild");
+      reject("Verift faild");
     }
   });
 };
-// export const VerifyToken = async (token) => {
-//   try {
-//     jwt.verify(token, SECREAT_KEY, async function (err, decode) {
-//       if (err) throw err;
-//       const decrypt = await Decrypt(decode["id"]);
-
-//       const mysql = "Select uuid from user where uuid=?";
-//       con.query(mysql, decrypt, function (err, user) {
-//         if (err) throw err;
-
-//         return user[0]["uuid"];
-//       });
-//     });
-//   } catch (error) {
-//     return "Verify Faild";
-//   }
-// };
 
 export const GeneratePassword = async (password) => {
   const encryptPassword = CryptoJS.AES.encrypt(

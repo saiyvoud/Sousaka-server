@@ -10,6 +10,9 @@ export const auth = async (req, res, next) => {
     return sendError(res, 401, "Invaild unathorized");
   }
   const verifyData = await VerifyToken(token);
+  if(!verifyData){
+    return sendError(res, 401, "Invaild unathorized");
+  }
  // console.log(verifyData);
   req.user = verifyData;
   next();
