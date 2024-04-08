@@ -32,20 +32,20 @@ export default class CheckListController {
   };
   static insert = async (req, res) => {
     try {
-      const { status, statusName } = req.body;
-      const vaildate = await ValidateData({ status, statusName });
+      const { status, statusName,reson } = req.body;
+      const vaildate = await ValidateData({ status, statusName});
       if (vaildate.length > 0) {
         return sendError(res, 400, EMessage.PleaseInput + vaildate.join(","));
       }
       const mysql =
-        "insert into checklist (chUuid,status,statusName,createdAt,updatedAt) values (?,?,?,?,?)";
+        "insert into checklist (chUuid,status,statusName,createdAt,updatedAt,reson) values (?,?,?,?,?,?)";
       const chUuid = uuid();
       var date = new Date()
         .toISOString()
         .replace(/T/, " ") // replace T with a space
         .replace(/\..+/, "");
-      con.query(mysql, [chUuid,status,statusName, date, date], function (err) {
-        if (err) return sendError(res, 404, "Error Insert");
+      con.query(mysql, [chUuid,status,statusName, date, date,reson], function (err) {
+        if (err) return sendError(res, 404, "Error Insert",err);
         return sendCreate(res, SMessage.insert);
       });
     } catch (error) {
@@ -58,8 +58,8 @@ export default class CheckListController {
       if (!chUuid) {
         return sendError(res, 400, "checklist params is required");
       }
-      const { status, statusName } = req.body;
-      const vaildate = await ValidateData({ status, statusName });
+      const { status, statusName,reson } = req.body;
+      const vaildate = await ValidateData({ status, statusName,reson });
       if (vaildate.length > 0) {
         return sendError(res, 400, EMessage.PleaseInput + vaildate.join(","));
       }
@@ -67,9 +67,9 @@ export default class CheckListController {
         .toISOString()
         .replace(/T/, " ") // replace T with a space
         .replace(/\..+/, "");
-      const mysql = "update checklist set status =?,statusName=?,updatedAt=? where chUuid=?";
+      const mysql = "update checklist set status =?,statusName=?,updatedAt=?,reson=? where chUuid=?";
 
-      con.query(mysql, [status,statusName, date, chUuid], function (err) {
+      con.query(mysql, [status,statusName, date,reson, chUuid], function (err) {
         if (err) return sendError(res, 404, "Error Update");
         return sendCreate(res, SMessage.update);
       });

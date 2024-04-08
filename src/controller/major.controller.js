@@ -42,7 +42,7 @@ export default class MajorController {
           .toISOString()
           .replace(/T/, " ") // replace T with a space
           .replace(/\..+/, "");
-      con.query(mysql, [mName,mUuid,date,date], function (err) {
+      con.query(mysql, [mUuid,mName,date,date], function (err) {
         if (err) return sendError(res, 404, "Error Insert");
         return sendCreate(res, SMessage.insert);
       });

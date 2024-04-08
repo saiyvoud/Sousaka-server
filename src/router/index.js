@@ -3,6 +3,7 @@ import CheckListController from "../controller/checklist.controller.js";
 import MajorController from "../controller/major.controller.js";
 import PartController from "../controller/part.controller.js";
 import StudentController from "../controller/student.controller.js";
+import SubjectController from "../controller/subject.controller.js";
 import TeacherController from "../controller/teach.controller.js";
 import UserController from "../controller/user.controller.js";
 import YearController from "../controller/year.controller.js";
@@ -56,4 +57,6 @@ route.get("/checklist/selectall",auth,CheckListController.selectAll);
 route.post("/checklist/insert",auth,CheckListController.insert);
 route.put("/checklist/update/:chUuid",auth,CheckListController.updateCheckList);
 route.delete("/checklist/delete/:chUuid",auth,CheckListController.deleteCheckList);
+//======== subject ======
+route.post("/subject/insert",auth,SubjectController.insert);
 export default route;
