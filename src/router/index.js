@@ -1,5 +1,6 @@
 import express from "express"
 import CheckListController from "../controller/checklist.controller.js";
+import ClassController from "../controller/class.controller.js";
 import MajorController from "../controller/major.controller.js";
 import PartController from "../controller/part.controller.js";
 import StudentController from "../controller/student.controller.js";
@@ -58,5 +59,16 @@ route.post("/checklist/insert",auth,CheckListController.insert);
 route.put("/checklist/update/:chUuid",auth,CheckListController.updateCheckList);
 route.delete("/checklist/delete/:chUuid",auth,CheckListController.deleteCheckList);
 //======== subject ======
+route.get("/subject/selectall",auth,SubjectController.selectAll);
+route.get("/subject/selectone/:subUuid",auth,SubjectController.selectOne);
 route.post("/subject/insert",auth,SubjectController.insert);
+route.put("/subject/update/:subUuid",auth,SubjectController.updateSubject);
+route.delete("/subject/delete/:subUuid",auth,SubjectController.deleteSubject);
+//======== class ======
+route.get("/class/selectall",auth,ClassController.selectAll);
+route.get("/class/selectone/:cUuid",auth,ClassController.selectOne);
+route.post("/class/insert",auth,ClassController.insert);
+route.put("/class/update/:cUuid",auth,ClassController.updateClass);
+route.delete("/class/delete/:cUuid",auth,ClassController.deleteClass);
+
 export default route;
