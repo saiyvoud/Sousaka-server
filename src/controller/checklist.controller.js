@@ -1,12 +1,22 @@
 import { EMessage, SMessage } from "../service/message.js";
-import { sendCreate, sendError,sendSuccess } from "../service/response.js";
+import { sendCreate, sendError, sendSuccess } from "../service/response.js";
 import con from "../config/db.js";
 import { v4 as uuid } from "uuid";
 import { ValidateData } from "../service/vaildate.js";
 export default class CheckListController {
   static selectAll = async (req, res) => {
     try {
-      const mysql = "select * from checklist";
+      const mysql = `SELECT checklist.chID,checklist.chUuid,class.cName,year.schoolyear,termNo,student.sID,student.sName,student.sSurname,major.mName,part.pName,subject.subName,subTime,teacher.tName,teacher.tSurname,teacher.tType,checklist.status,checklist.statusName,reson,checklist.createdAt,checklist.updatedAt
+      FROM checklist
+      INNER JOIN class_detail ON checklist.class_detail_id = class_detail.cdUuid 
+      INNER JOIN class ON class_detail.class_id = class.cUuid 
+      INNER JOIN year ON class.year_id = year.yUuid 
+      INNER JOIN student ON class_detail.student_id = student.sUuid
+      INNER JOIN major ON class.major_id = major.mUuid
+      INNER JOIN part ON class_detail.part_id = part.pUuid
+      INNER JOIN subject ON class_detail.subject_id = subject.subUuid
+      INNER JOIN teacher ON subject.teacher_id = teacher.tUuid`;
+      // const mysql = "select * from checklist";
       con.query(mysql, function (err, result) {
         if (err) throw err;
         return sendSuccess(res, SMessage.selectAll, result);
@@ -21,9 +31,22 @@ export default class CheckListController {
       if (!chUuid) {
         return sendError(res, 400, "checklist is reqiured!");
       }
-      const mysql = "Select * from checklist WHERE chUuid =?";
+      const mysql = `SELECT checklist.chID,checklist.chUuid,class.cName,year.schoolyear,termNo,student.sID,student.sName,student.sSurname,major.mName,part.pName,subject.subName,subTime,teacher.tName,teacher.tSurname,teacher.tType,checklist.status,checklist.statusName,reson,checklist.createdAt,checklist.updatedAt
+      FROM checklist
+      INNER JOIN class_detail ON checklist.class_detail_id = class_detail.cdUuid 
+      INNER JOIN class ON class_detail.class_id = class.cUuid 
+      INNER JOIN year ON class.year_id = year.yUuid 
+      INNER JOIN student ON class_detail.student_id = student.sUuid
+      INNER JOIN major ON class.major_id = major.mUuid
+      INNER JOIN part ON class_detail.part_id = part.pUuid
+      INNER JOIN subject ON class_detail.subject_id = subject.subUuid
+      INNER JOIN teacher ON subject.teacher_id = teacher.tUuid WHERE chUuid =?`;
+    
       con.query(mysql, chUuid, function (err, result) {
         if (err) throw err;
+        if(result[0] == null){
+          return sendError(res,404,"Not Found Checklist")
+        }
         return sendSuccess(res, SMessage.selectOne, result[0]);
       });
     } catch (error) {
@@ -32,21 +55,36 @@ export default class CheckListController {
   };
   static insert = async (req, res) => {
     try {
-      const { status, statusName,reson } = req.body;
-      const vaildate = await ValidateData({ status, statusName});
+      const { class_detail_id, status, statusName, reson } = req.body;
+      const vaildate = await ValidateData({
+        class_detail_id,
+        status,
+        statusName,
+      });
       if (vaildate.length > 0) {
         return sendError(res, 400, EMessage.PleaseInput + vaildate.join(","));
       }
-      const mysql =
-        "insert into checklist (chUuid,status,statusName,createdAt,updatedAt,reson) values (?,?,?,?,?,?)";
-      const chUuid = uuid();
-      var date = new Date()
-        .toISOString()
-        .replace(/T/, " ") // replace T with a space
-        .replace(/\..+/, "");
-      con.query(mysql, [chUuid,status,statusName, date, date,reson], function (err) {
-        if (err) return sendError(res, 404, "Error Insert",err);
-        return sendCreate(res, SMessage.insert);
+      const checkCD = "select * from class_detail where cdUuid=?";
+      con.query(checkCD, class_detail_id, function (err, result) {
+        if (err) return sendError(res, 404, "Not Found Class Detail");
+        if (result[0] == null) {
+          return sendError(res, 404, "Not Found Class Detail");
+        }
+        const mysql =
+          "insert into checklist (chUuid,class_detail_id,status,statusName,createdAt,updatedAt,reson) values (?,?,?,?,?,?,?)";
+        const chUuid = uuid();
+        var date = new Date()
+          .toISOString()
+          .replace(/T/, " ") // replace T with a space
+          .replace(/\..+/, "");
+        con.query(
+          mysql,
+          [chUuid, class_detail_id, status, statusName, date, date, reson],
+          function (err) {
+            if (err) return sendError(res, 404, "Error Insert", err);
+            return sendCreate(res, SMessage.insert);
+          }
+        );
       });
     } catch (error) {
       return sendError(res, 500, EMessage.server, error);
@@ -58,8 +96,8 @@ export default class CheckListController {
       if (!chUuid) {
         return sendError(res, 400, "checklist params is required");
       }
-      const { status, statusName,reson } = req.body;
-      const vaildate = await ValidateData({ status, statusName,reson });
+      const { status, statusName, reson } = req.body;
+      const vaildate = await ValidateData({ status, statusName, reson });
       if (vaildate.length > 0) {
         return sendError(res, 400, EMessage.PleaseInput + vaildate.join(","));
       }
@@ -67,12 +105,17 @@ export default class CheckListController {
         .toISOString()
         .replace(/T/, " ") // replace T with a space
         .replace(/\..+/, "");
-      const mysql = "update checklist set status =?,statusName=?,updatedAt=?,reson=? where chUuid=?";
+      const mysql =
+        "update checklist set status =?,statusName=?,updatedAt=?,reson=? where chUuid=?";
 
-      con.query(mysql, [status,statusName, date,reson, chUuid], function (err) {
-        if (err) return sendError(res, 404, "Error Update");
-        return sendCreate(res, SMessage.update);
-      });
+      con.query(
+        mysql,
+        [status, statusName, date, reson, chUuid],
+        function (err) {
+          if (err) return sendError(res, 404, "Error Update");
+          return sendCreate(res, SMessage.update);
+        }
+      );
     } catch (error) {
       return sendError(res, 500, EMessage.server, error);
     }

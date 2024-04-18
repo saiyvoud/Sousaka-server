@@ -1,8 +1,10 @@
 import express from "express"
 import CheckListController from "../controller/checklist.controller.js";
 import ClassController from "../controller/class.controller.js";
+import ClassDetailController from "../controller/class.detail.controller.js";
 import MajorController from "../controller/major.controller.js";
 import PartController from "../controller/part.controller.js";
+import ReportController from "../controller/report.controller.js";
 import StudentController from "../controller/student.controller.js";
 import SubjectController from "../controller/subject.controller.js";
 import TeacherController from "../controller/teach.controller.js";
@@ -70,5 +72,15 @@ route.get("/class/selectone/:cUuid",auth,ClassController.selectOne);
 route.post("/class/insert",auth,ClassController.insert);
 route.put("/class/update/:cUuid",auth,ClassController.updateClass);
 route.delete("/class/delete/:cUuid",auth,ClassController.deleteClass);
-
+//======== class detail ======
+route.get("/classdetail/selectall",auth,ClassDetailController.selectAll);
+route.get("/classdetail/selectone/:cdUuid",auth,ClassDetailController.selectOne);
+route.get("/classdetail/selectbyclassid/:cUuid",auth,ClassDetailController.selectByClassID);
+route.post("/classdetail/insert",auth,ClassDetailController.insert);
+route.put("/classdetail/update/:cdUuid",auth,ClassDetailController.updateClassDetail);
+route.delete("/classdetail/delete/:cdUuid",auth,ClassDetailController.deleteClassDetail);
+//======== report ======
+// route.get("/report/selectall",auth,ReportController.selectAll);
+// route.get("/report/selectone/:rpUuid",auth,ReportController.selectOne);
+// route.post("/report/insert",auth,ReportController.insert);
 export default route;

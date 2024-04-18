@@ -9,7 +9,7 @@ export default class ClassController {
   // INNER JOIN teacher ON subject.teacher_id = teacher.tUuid
   static selectAll = async (req, res) => {
     try {
-      const mysql = `SELECT class.cID,class.cUuid,class.cName,year.yearNumber,year.schoolyear,major.mName,class.createdAt,class.updatedAt
+      const mysql = `SELECT class.cID,class.cUuid,class.cName,termNo,year.yearNumber,year.schoolyear,major.mName,class.createdAt,class.updatedAt
       FROM class
       INNER JOIN year ON class.year_id = year.yUuid 
       INNER JOIN major ON class.major_id = major.mUuid`;
@@ -27,7 +27,7 @@ export default class ClassController {
       if (!classId) {
         return sendError(res, 400, "class id is reqiured!");
       }
-      const mysql = `SELECT class.cID,class.cUuid,class.cName,year.yearNumber,year.schoolyear,major.mName,class.createdAt,class.updatedAt
+      const mysql = `SELECT class.cID,class.cUuid,class.cName,termNo,year.yearNumber,year.schoolyear,major.mName,class.createdAt,class.updatedAt
       FROM class
       INNER JOIN year ON class.year_id = year.yUuid 
       INNER JOIN major ON class.major_id = major.mUuid where cUuid=?`;
@@ -42,13 +42,12 @@ export default class ClassController {
 
   static insert = async (req, res) => {
     try {
-      const { year_id, major_id, cName } = req.body;
+      const { year_id, major_id, cName,termNo } = req.body;
       const vaildate = await ValidateData({
         year_id,
-
         major_id,
-
         cName,
+        termNo
       });
       if (vaildate.length > 0) {
         return sendError(res, 400, EMessage.PleaseInput + vaildate.join(","));
@@ -58,7 +57,7 @@ export default class ClassController {
       const checkMajor = "Select * from major where mUuid=?";
       // const checkSub = "Select * from subject where subUuid=?";
       const insert =
-        "insert into class (cUuid,year_id,major_id,cName,createdAt,updatedAt) VALUES (?,?,?,?,?,?)";
+        "insert into class (cUuid,year_id,major_id,cName,termNo,createdAt,updatedAt) VALUES (?,?,?,?,?,?,?)";
       con.query(checkYear, year_id, function (errYear, year) {
         if (errYear) return sendError(res, 404, "Not Found Year", errYear);
         if (year.length == 0) {
