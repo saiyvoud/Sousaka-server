@@ -76,10 +76,10 @@ export default class UserController {
       if (!email || !password) {
         return sendError(res, 400, "email and password is required!");
       }
-      const image = req.files;
-      if (image == null || image == undefined) {
-        return sendError(res, 400, "profile is required!");
-      }
+      // const image = req.files;
+      // if (image == null || image == undefined) {
+      //   return sendError(res, 400, "profile is required!");
+      // }
 
       // validate email
       const mysqlEmail = "Select * from user where email =?";
@@ -89,7 +89,7 @@ export default class UserController {
           return sendError(res, 400, EMessage.EmailAleardy);
         }
         // const image_url = await UloadToCloudinary(image.profile.data);
-        const image_url = await UploadToCloudinary(image.profile.data);
+        // const image_url = await UploadToCloudinary(image.profile.data);
         const genpassword = await GeneratePassword(password);
 
         const uuid = uuidv4();
@@ -100,11 +100,11 @@ export default class UserController {
         console.log(date);
 
         var mysql =
-          "INSERT INTO user (uuid,email,password,role,createdAt,updateAt,profile) VALUES (? ,?, ?, ?, ?, ?,?)";
+          "INSERT INTO user (uuid,email,password,role,createdAt,updateAt) VALUES (? ,?, ?, ?, ?, ?)";
 
         con.query(
           mysql,
-          [uuid, email, genpassword, Role.student, date, date, image_url],
+          [uuid, email, genpassword, Role.student, date, date],
           async function (err, result) {
             if (err) throw err;
             var data = {
