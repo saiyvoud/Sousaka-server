@@ -95,10 +95,16 @@ export const GenerateToken = async (data) => {
     id: await encrypt(data.id),
     role: await encrypt("USER_MANUAN"),
   };
-  const token = jwt.sign(paylod, SECREAT_KEY, { expiresIn: "4h" });
+  const token = jwt.sign(paylod, SECREAT_KEY, { expiresIn: "2h" });
   const refreshToken = jwt.sign(paylod_refresh, SECREAT_KEY, {
-    expiresIn: "1d",
+    expiresIn: "4h",
   });
+  let date = new Date()
+          // .toISOString()
+          // .replace(/T/, " ") // replace T with a space
+          // .replace(/\..+/, "");
+ let expiresIn =  date.setHours(2 + date.getHours())
+  
 
-  return { token, refreshToken };
+  return { token, refreshToken,expiresIn };
 };
