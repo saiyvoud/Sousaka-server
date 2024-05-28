@@ -42,12 +42,11 @@ export default class ClassController {
 
   static insert = async (req, res) => {
     try {
-      const { year_id, major_id, cName,termNo } = req.body;
+      const { year_id, major_id, cName } = req.body;
       const vaildate = await ValidateData({
         year_id,
         major_id,
         cName,
-        termNo
       });
       if (vaildate.length > 0) {
         return sendError(res, 400, EMessage.PleaseInput + vaildate.join(","));
@@ -57,7 +56,7 @@ export default class ClassController {
       const checkMajor = "Select * from major where mUuid=?";
       // const checkSub = "Select * from subject where subUuid=?";
       const insert =
-        "insert into class (cUuid,year_id,major_id,cName,termNo,createdAt,updatedAt) VALUES (?,?,?,?,?,?,?)";
+        "insert into class (cUuid,year_id,major_id,cName,createdAt,updatedAt) VALUES (?,?,?,?,?,?)";
       con.query(checkYear, year_id, function (errYear, year) {
         if (errYear) return sendError(res, 404, "Not Found Year", errYear);
         if (year.length == 0) {
