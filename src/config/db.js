@@ -9,8 +9,12 @@ var con = mysql.createConnection({
 });
 
 
+
 con.connect((error) => {
-  if (error) throw error;
+  if (error) {
+    console.log("failed to connect to db!");
+    throw error
+  };
 
   console.log("Connected to MySQL database!");
 });

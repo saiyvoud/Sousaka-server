@@ -22,6 +22,9 @@ route.put("/user/updateprofileimage",auth,UserController.updateProfileImage)
 route.post("/user/refresh",UserController.refreshToken)
 route.delete("/user/delete",auth,UserController.deleteUser)
 route.get("/user/info",auth,UserController.userInfo)
+route.get("/user/selectall",auth,UserController.selectAll)
+
+
 //======== student =====
 route.get("/student/selectone/:sID",auth,StudentController.selectOne);
 route.get("/student/selectall",auth,StudentController.selectAll);

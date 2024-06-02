@@ -9,7 +9,7 @@ export default class ClassController {
   // INNER JOIN teacher ON subject.teacher_id = teacher.tUuid
   static selectAll = async (req, res) => {
     try {
-      const mysql = `SELECT class.cID,class.cUuid,class.cName,termNo,year.yearNumber,year.schoolyear,major.mName,class.createdAt,class.updatedAt
+      const mysql = `SELECT class.cID,class.cUuid,class.cName,year.yearNumber,year.schoolyear,major.mName,class.createdAt,class.updatedAt
       FROM class
       INNER JOIN year ON class.year_id = year.yUuid 
       INNER JOIN major ON class.major_id = major.mUuid`;
@@ -27,7 +27,7 @@ export default class ClassController {
       if (!classId) {
         return sendError(res, 400, "class id is reqiured!");
       }
-      const mysql = `SELECT class.cID,class.cUuid,class.cName,termNo,year.yearNumber,year.schoolyear,major.mName,class.createdAt,class.updatedAt
+      const mysql = `SELECT class.cID,class.cUuid,class.cName,year.yearNumber,year.schoolyear,major.mName,class.createdAt,class.updatedAt
       FROM class
       INNER JOIN year ON class.year_id = year.yUuid 
       INNER JOIN major ON class.major_id = major.mUuid where cUuid=?`;

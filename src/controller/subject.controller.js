@@ -42,6 +42,7 @@ export default class SubjectController {
   static insert = async (req, res) => {
     try {
       const { subName, subTime, teacher_id } = req.body;
+      console.log("insert subject data", subName, subTime, teacher_id);
       const vaildate = await ValidateData({ subName, subTime, teacher_id });
       if (vaildate.length > 0) {
         return sendError(res, 400, EMessage.PleaseInput + vaildate.join(","));

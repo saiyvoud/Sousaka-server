@@ -143,7 +143,7 @@ export default class StudentController {
 
       con.query(
         update,
-        [sID, birthday, nationallity, gender, village, district, province, tel,studentId],
+        [sID, birthday, nationallity, gender, village, district, province, tel, studentId],
         function (err) {
           if (err) throw err;
           return sendSuccess(res, SMessage.update);

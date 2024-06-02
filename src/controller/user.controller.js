@@ -27,6 +27,18 @@ export default class UserController {
     }
   };
 
+  static selectAll = async (req, res) => {
+    try {
+      const mysql = "Select * from user";
+      con.query(mysql, function (err, result) {
+        if (err) throw err;
+        return sendSuccess(res, SMessage.selectAll, result);
+      });
+    } catch (error) {
+      return sendError(res, 500, EMessage.server, error);
+    }
+  };
+
   static login = async (req, res) => {
     try {
       // validate data
@@ -35,9 +47,12 @@ export default class UserController {
         return sendError(res, 404, "email and password is required!");
       }
       const mysql = "Select * from user where email =?";
+
       // query search email
       con.query(mysql, email, async function (err, userData) {
-        if (err) throw err;
+        if (err)  {
+          return sendError(res, 401, err);  
+        }
         if (
           userData == null ||
           userData == undefined ||
