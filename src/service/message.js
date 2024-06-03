@@ -1,6 +1,7 @@
 export const Role = {
   student: "student",
   admin: "admin",
+  superadmin: "superadmin",
   teacher: "teacher",
   director: "director",
 };
@@ -20,6 +21,7 @@ export const EMessage ={
   server: "Server Error internal",
   EmailAleardy: "Email Aleardy",
   passwordNotMatch: "Password is not match",
-  PleaseInput: "Please input: "
+  PleaseInput: "Please input: ",
+  NotFound: "Not Found",
 
 }

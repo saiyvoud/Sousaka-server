@@ -14,23 +14,24 @@ import {auth} from "../middleware/auth.middleware.js";
 const route = express.Router();
 //========= auth =======
 route.post("/user/register",UserController.register);
+route.post("/user/addRole",UserController.addRole);
 route.post("/user/login",UserController.login);
 route.put("/user/forgot",UserController.forgotPassword)
 route.put("/user/changepassword",auth,UserController.changePassword)
 route.put("/user/update",auth,UserController.updateProfile)
-route.put("/user/updateprofileimage",auth,UserController.updateProfileImage)
+
 route.post("/user/refresh",UserController.refreshToken)
-route.delete("/user/delete",auth,UserController.deleteUser)
+route.delete("/user/delete/:userId",auth,UserController.deleteUser)
 route.get("/user/info",auth,UserController.userInfo)
 route.get("/user/selectall",auth,UserController.selectAll)
-
+route.get("/user/getOne/:userId",auth,UserController.userOne)
 
 //======== student =====
 route.get("/student/selectone/:sID",auth,StudentController.selectOne);
 route.get("/student/selectall",auth,StudentController.selectAll);
 route.get("/student/selectby/:user_id",auth,StudentController.selectByUserId);
 route.post("/student/insert",auth,StudentController.insert);
-route.put("/student/update/:sUuid",auth,StudentController.updateStudent);
+route.put("/student/update/:sID",auth,StudentController.updateStudent);
 route.delete("/student/delete/:sUuid",auth,StudentController.deleteStudent);
 //======== teacher ======
 route.get("/teacher/selectone/:tUuid",auth,TeacherController.selectOne);
@@ -76,8 +77,8 @@ route.post("/class/insert",auth,ClassController.insert);
 route.put("/class/update/:cUuid",auth,ClassController.updateClass);
 route.delete("/class/delete/:cUuid",auth,ClassController.deleteClass);
 //======== class detail ======
-route.get("/classdetail/selectall",auth,ClassDetailController.selectAll);
-route.get("/classdetail/selectone/:cdUuid",auth,ClassDetailController.selectOne);
+route.get("/classdetail/selectall",ClassDetailController.selectAll);
+route.get("/classdetail/selectone/:class_id",ClassDetailController.selectOne);
 route.get("/classdetail/selectbyclassid/:cUuid",auth,ClassDetailController.selectByClassID);
 route.post("/classdetail/insert",auth,ClassDetailController.insert);
 route.put("/classdetail/update/:cdUuid",auth,ClassDetailController.updateClassDetail);

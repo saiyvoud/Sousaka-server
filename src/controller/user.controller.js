@@ -12,14 +12,28 @@ import {
   GenerateRefreshToken,
 } from "../service/service.js";
 import { UploadToCloudinary } from "../config/cloudinary.js";
+import { ValidateData } from "../service/vaildate.js";
 
 export default class UserController {
+  static userOne = (req, res) => {
+    try {
+      const userId = req.params.userId;
+      const mysql = "Select * from user where uuid =?";
+      con.query(mysql, userId, function (err, rows) {
+        if (err) return sendError(res, 404, EMessage.NotFound, err);
+        return sendSuccess(res, SMessage.selectOne, rows[0]);
+      });
+    } catch (error) {
+      return sendError(res, 500, EMessage.server, error);
+    }
+  };
+
   static userInfo = async (req, res) => {
     try {
       const userId = req.user;
       const mysql = "Select * from user where uuid =?";
       con.query(mysql, userId, function (err, rows) {
-        if (err) throw err;
+        if (err) return sendError(res, 404, EMessage.NotFound, err);
         return sendSuccess(res, SMessage.selectOne, rows[0]);
       });
     } catch (error) {
@@ -31,7 +45,7 @@ export default class UserController {
     try {
       const mysql = "Select * from user";
       con.query(mysql, function (err, result) {
-        if (err) throw err;
+        if (err) return sendError(res, 404, EMessage.NotFound, err);
         return sendSuccess(res, SMessage.selectAll, result);
       });
     } catch (error) {
@@ -50,15 +64,9 @@ export default class UserController {
 
       // query search email
       con.query(mysql, email, async function (err, userData) {
-        if (err)  {
-          return sendError(res, 401, err);  
-        }
-        if (
-          userData == null ||
-          userData == undefined ||
-          userData == [] ||
-          userData == 0
-        ) {
+        if (err) return sendError(res, 401, "Not Found", err);
+
+        if (!userData) {
           return sendError(res, 400, "Email not found");
         }
 
@@ -85,16 +93,62 @@ export default class UserController {
     }
   };
 
+  static addRole = async (req, res) => {
+    try {
+      const { email, password, role } = req.body;
+      const validate = await ValidateData({ email, password, role });
+      if (validate.length > 0) {
+        return sendError(res, 400, EMessage.PleaseInput + validate.join(","));
+      }
+      const mysqlEmail = "Select * from user where email =?";
+      con.query(mysqlEmail, email, async function (err, result) {
+        if (err) return sendError(res, 404, EMessage.NotFound, err);
+        if (result[0]) {
+          return sendError(res, 400, EMessage.EmailAleardy);
+        }
+        const allowStatus = Object.values(Role);
+        if (!allowStatus.includes(role)) {
+          return sendError(
+            res,
+            400,
+            "status must be: " + allowStatus.join(",")
+          );
+        }
+        const genpassword = await GeneratePassword(password);
+        const uuid = uuidv4();
+        var date = new Date()
+          .toISOString()
+          .replace(/T/, " ")
+          .replace(/\..+/, "");
+        console.log(date);
+
+        var mysql =
+          "INSERT INTO user (uuid,email,password,role,createdAt,updatedAt) VALUES (? ,?, ?, ?, ?, ?)";
+
+        con.query(
+          mysql,
+          [uuid, email, genpassword, role, date, date],
+          async function (err) {
+            if (err) return sendError(res, 404, EMessage.NotFound, err);
+
+            return sendSuccess(res, SMessage.register);
+          }
+        );
+      });
+    } catch (error) {
+      return sendError(res, 500, EMessage.server, error);
+    }
+  };
   static register = async (req, res) => {
     try {
       const { email, password } = req.body;
       if (!email || !password) {
         return sendError(res, 400, "email and password is required!");
       }
-     
+
       const mysqlEmail = "Select * from user where email =?";
       con.query(mysqlEmail, email, async function (err, result) {
-        if (err) throw err;
+        if (err) return sendError(res, 404, EMessage.NotFound, err);
         if (result[0]) {
           return sendError(res, 400, EMessage.EmailAleardy);
         }
@@ -116,12 +170,8 @@ export default class UserController {
           mysql,
           [uuid, email, genpassword, Role.student, date, date],
           async function (err, result) {
-            if (err) throw err;
-            var data = {
-              id: uuid,
-              role: Role.student,
-            };
-            // const token = await GenerateToken(data);
+            if (err) return sendError(res, 404, EMessage.NotFound, err);
+
             return sendSuccess(res, SMessage.register);
           }
         );
@@ -140,7 +190,7 @@ export default class UserController {
       }
       const mysqlEmail = "Select email from user where email =?";
       con.query(mysqlEmail, email, async function (err, result) {
-        if (err) throw err;
+        if (err) return sendError(res, 404, EMessage.NotFound, err);
 
         if (
           result[0] == undefined ||
@@ -154,7 +204,7 @@ export default class UserController {
         const forgot = "UPDATE user set password =? WHERE email =?";
 
         con.query(forgot, [genpassword, email], function (error, success) {
-          if (error) throw error;
+          if (error) return sendError(res, 404, EMessage.NotFound, err);
           return sendSuccess(res, "Forgot Success");
         });
       });
@@ -171,7 +221,7 @@ export default class UserController {
       }
       const mysql = "Select * from user where uuid =?";
       con.query(mysql, userId, async function (err, result) {
-        if (err) throw err;
+        if (err) return sendError(res, 404, EMessage.NotFound, err);
 
         const decryptPassword = await Decrypt(result[0]["password"]);
         if (oldPassword != decryptPassword) {
@@ -180,7 +230,7 @@ export default class UserController {
         const password = await GeneratePassword(newPassword);
         const update = "UPDATE user set password =? WHERE uuid =?";
         con.query(update, [password, userId], function (error) {
-          if (error) throw error;
+          if (error) return sendError(res, 404, EMessage.NotFound, err);
 
           return sendSuccess(res, SMessage.update);
         });
@@ -197,24 +247,6 @@ export default class UserController {
         return sendError(res, 400, "email is required!");
       }
       const mysql = "Select * from user where uuid =?";
-      con.query(mysql, userId, async function (err, result) {
-        if (err) throw err;
-        if (email == result[0]["email"]) {
-          return sendError(res, 400, EMessage.EmailAleardy);
-        }
-        const update = "UPDATE user set email =? WHERE uuid =?";
-        con.query(update, [email, userId], function (error) {
-          if (error) throw error;
-          return sendSuccess(res, SMessage.update);
-        });
-      });
-    } catch (error) {
-      return sendError(res, 500, EMessage.server, error);
-    }
-  };
-  static updateProfileImage = async (req, res) => {
-    try {
-      const userId = req.user;
       const image = req.files;
       if (!image) {
         return sendError(res, 400, "profile is required!");
@@ -223,15 +255,22 @@ export default class UserController {
       if (!image_url) {
         return sendError(res, 404, "Error Upload Profile!");
       }
-      const update = "UPDATE user set profile =? WHERE uuid =?";
-      con.query(update, [image_url, userId], function (err) {
+      con.query(mysql, userId, async function (err, result) {
         if (err) throw err;
-        return sendSuccess(res, SMessage.update);
+        if (email == result[0]["email"]) {
+          return sendError(res, 400, EMessage.EmailAleardy);
+        }
+        const update = "UPDATE user set email =? profile=?, WHERE uuid =?";
+        con.query(update, [email, image_url, userId], function (error) {
+          if (error) return sendError(res, 404, EMessage.NotFound, err);
+          return sendSuccess(res, SMessage.update);
+        });
       });
     } catch (error) {
       return sendError(res, 500, EMessage.server, error);
     }
   };
+
   static refreshToken = async (req, res) => {
     try {
       const { refreshToken } = req.body;
@@ -246,14 +285,18 @@ export default class UserController {
   };
   static deleteUser = (req, res) => {
     try {
-      const userId = req.user;
+      const userId = req.params.userId;
       const mysql = `DELETE FROM user WHERE uuid = ?`;
       con.query(mysql, userId, function (err) {
-        if (err) throw err;
+        if (err) return sendError(res, 404, EMessage.NotFound, err);
         return sendSuccess(res, SMessage.delete);
       });
     } catch (error) {
       return sendError(res, 500, EMessage.server, error);
     }
+  };
+  static searchUser = (req, res) => {
+    try {
+    } catch (error) {}
   };
 }

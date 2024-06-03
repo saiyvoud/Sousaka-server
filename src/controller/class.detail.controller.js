@@ -6,15 +6,21 @@ import { v4 as uuid } from "uuid";
 export default class ClassDetailController {
   static selectAll = async (req, res) => {
     try {
-      const mysql = `SELECT class_detail.cdID,class_detail.cdUuid,class.cUuid,class.cName,termNo,year.schoolyear,student.sID,student.sName,student.sSurname,major.mName,part.pName,subject.subName,subTime,teacher.tName,teacher.tSurname,teacher.tel,teacher.tType,class_detail.createdAt,class_detail.updatedAt
-      FROM class_detail
-      INNER JOIN class ON class_detail.class_id = class.cUuid 
-      INNER JOIN year ON class.year_id = year.yUuid 
-      INNER JOIN student ON class_detail.student_id = student.sUuid
-      INNER JOIN major ON class.major_id = major.mUuid
-      INNER JOIN part ON class_detail.part_id = part.pUuid
-      INNER JOIN subject ON class_detail.subject_id = subject.subUuid
-      INNER JOIN teacher ON subject.teacher_id = teacher.tUuid`;
+      // const mysql = `SELECT class_detail.cdID,class_detail.cdUuid,class.cUuid,class.cName,termNo,year.schoolyear,student.sID,student.sName,student.sSurname,major.mName,part.pName,subject.subName,subTime,teacher.tName,teacher.tSurname,teacher.tel,teacher.tType,class_detail.createdAt,class_detail.updatedAt
+      // FROM class_detail
+
+      // INNER JOIN class ON class_detail.class_id = class.cUuid
+      // INNER JOIN year ON class.year_id = year.yUuid
+      // INNER JOIN student ON class_detail.student_id = student.sUuid
+      // INNER JOIN major ON class.major_id = major.mUuid
+      // INNER JOIN part ON class_detail.part_id = part.pUuid
+      // INNER JOIN subject ON class_detail.subject_id = subject.subUuid
+      // INNER JOIN teacher ON subject.teacher_id = teacher.tUuid`;
+      const mysql = `SELECT cdID, cdUuid,class_id,class.year_id, class.major_id,subject_id,part_id,student_id,subject.teacher_id,class_detail.createdAt,class_detail.updatedAt FROM class_detail 
+       INNER JOIN class ON class_detail.class_id = class.cUuid
+       INNER JOIN subject ON class_detail.subject_id = subject.subUuid
+       INNER JOIN teacher ON subject.teacher_id = teacher.tUuid`
+       ;
       con.query(mysql, function (err, result) {
         if (err) throw err;
         return sendSuccess(res, SMessage.selectAll, result);
@@ -25,21 +31,26 @@ export default class ClassDetailController {
   };
   static selectOne = async (req, res) => {
     try {
-      const cdUuid = req.params.cdUuid;
+      const cdUuid = req.params.class_id;
       if (!cdUuid) {
         return sendError(res, 400, "class id is reqiured!");
       }
-      const mysql = `SELECT class_detail.cdID,class_detail.cdUuid,class.cName,termNo,year.schoolyear,student.sID,student.sName,student.sSurname,major.mName,part.pName,subject.subName,subTime,teacher.tName,teacher.tSurname,teacher.tel,teacher.tType,class_detail.createdAt,class_detail.updatedAt
-      FROM class_detail
-      INNER JOIN class ON class_detail.class_id = class.cUuid 
-      INNER JOIN year ON class.year_id = year.yUuid 
-      INNER JOIN student ON class_detail.student_id = student.sUuid
-      INNER JOIN major ON class.major_id = major.mUuid
-      INNER JOIN part ON class_detail.part_id = part.pUuid
+      // const mysql = `SELECT class_detail.cdID,class_detail.cdUuid,class.cName,termNo,year.schoolyear,student.sID,student.sName,student.sSurname,major.mName,part.pName,subject.subName,subTime,teacher.tName,teacher.tSurname,teacher.tel,teacher.tType,class_detail.createdAt,class_detail.updatedAt
+      // FROM class_detail
+      // INNER JOIN class ON class_detail.class_id = class.cUuid 
+      // INNER JOIN year ON class.year_id = year.yUuid 
+      // INNER JOIN student ON class_detail.student_id = student.sUuid
+      // INNER JOIN major ON class.major_id = major.mUuid
+      // INNER JOIN part ON class_detail.part_id = part.pUuid
+      // INNER JOIN subject ON class_detail.subject_id = subject.subUuid
+      // INNER JOIN teacher ON subject.teacher_id = teacher.tUuid where cdUuid = ?`;
+      const mysql = `SELECT cdID, cdUuid,class_id,class.year_id, class.major_id,subject_id,part_id,student_id,subject.teacher_id,class_detail.createdAt,class_detail.updatedAt FROM class_detail 
+      INNER JOIN class ON class_detail.class_id = class.cUuid
       INNER JOIN subject ON class_detail.subject_id = subject.subUuid
-      INNER JOIN teacher ON subject.teacher_id = teacher.tUuid where cdUuid = ?`;
+      INNER JOIN teacher ON subject.teacher_id = teacher.tUuid WHERE class_id =?`
       con.query(mysql, cdUuid, function (err, data) {
         if (err) throw err;
+        if(!data[0]) return sendError(res,404,EMessage.NotFound + " Class",err)
         return sendSuccess(res, SMessage.selectOne, data);
       });
     } catch (error) {

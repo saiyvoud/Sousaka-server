@@ -111,12 +111,13 @@ export default class StudentController {
   };
   static updateStudent = async (req, res) => {
     try {
-      const studentId = req.params.sUuid;
+      const studentId = req.params.sID;
       if (!studentId) {
         return sendError(res, 400, "student is reqiured!");
       }
       const {
-        sID,
+        sName,
+        sSurname,
         birthday,
         nationallity,
         gender,
@@ -126,7 +127,8 @@ export default class StudentController {
         tel,
       } = req.body;
       const validate = await ValidateData({
-        sID,
+        sName,
+        sSurname,
         birthday,
         nationallity,
         gender,
@@ -138,17 +140,36 @@ export default class StudentController {
       if (validate.length > 0) {
         return sendError(res, 400, EMessage.PleaseInput + validate.join(","));
       }
-      const update =
-        "UPDATE student set sID=?,birthday =?,nationallity =?,gender =?,village =?,district =? ,province =?,tel =? WHERE sUuid =?";
-
-      con.query(
-        update,
-        [sID, birthday, nationallity, gender, village, district, province, tel, studentId],
-        function (err) {
-          if (err) throw err;
-          return sendSuccess(res, SMessage.update);
+      const check = "Select * from student where sID=?";
+      con.query(check, studentId, function (errs, result) {
+        if (errs) return sendError(res, 404, EMessage.NotFound, errs);
+        console.log(result[0]);
+        if (!result) {
+          return sendError(res, 404, EMessage.NotFound, errs);
         }
-      );
+        const updateStudnet =
+          "UPDATE student SET sName=?,sSurname=?, birthday=? ,nationallity=?,gender=?,village=?,district=?,province=?,tel=? WHERE sID=?";
+
+        con.query(
+          updateStudnet,
+          [
+            sName,
+            sSurname,
+            birthday,
+            nationallity,
+            gender,
+            village,
+            district,
+            province,
+            tel,
+            studentId,
+          ],
+          function (err) {
+            if (err) return sendError(res, 404, EMessage.NotFound, err);
+            return sendSuccess(res, SMessage.update);
+          }
+        );
+      });
     } catch (error) {
       return sendError(res, 500, EMessage.server);
     }

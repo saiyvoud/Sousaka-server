@@ -32,19 +32,19 @@ export default class YearController {
   };
   static insert = async (req, res) => {
     try {
-      const { yearNumber} = req.body;
-      const validate = await ValidateData({ yearNumber});
+      const { yearNumber,schoolyear} = req.body;
+      const validate = await ValidateData({ yearNumber,schoolyear});
       if (validate.length > 0) {
         return sendError(res, 400, EMessage.PleaseInput + validate.join(","));
       }
       const mysql =
-        "insert into year (yUuid,yearNumber,createdAt,updatedAt) values (?,?,?,?)";
+        "insert into year (yUuid,yearNumber,schoolyear,createdAt,updatedAt) values (?,?,?,?)";
       const pUuid = uuid();
       var date = new Date()
         .toISOString()
         .replace(/T/, " ") // replace T with a space
         .replace(/\..+/, "");
-      con.query(mysql, [ pUuid,yearNumber,date, date], function (err) {
+      con.query(mysql, [ pUuid,yearNumber,schoolyear,date, date], function (err) {
         if (err) return sendError(res, 404, "Error Insert",err);
         return sendCreate(res, SMessage.insert);
       });
@@ -58,8 +58,8 @@ export default class YearController {
       if (!yUuid) {
         return sendError(res, 400, "year params is required");
       }
-      const { yearNumber,  } = req.body;
-      const validate = await ValidateData({ yearNumber,  });
+      const { yearNumber,schoolyear  } = req.body;
+      const validate = await ValidateData({ yearNumber,schoolyear  });
       if (validate.length > 0) {
         return sendError(res, 400, EMessage.PleaseInput + validate.join(","));
       }
@@ -69,7 +69,7 @@ export default class YearController {
         .replace(/\..+/, "");
       const mysql = "update year set yearNumber =?,updatedAt=? where yUuid=?";
 
-      con.query(mysql, [yearNumber, date, yUuid], function (err) {
+      con.query(mysql, [yearNumber,schoolyear, date, yUuid], function (err) {
         if (err) return sendError(res, 404, "Error Update",err);
         return sendCreate(res, SMessage.update);
       });

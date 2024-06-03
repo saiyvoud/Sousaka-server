@@ -116,10 +116,10 @@ export default class TeacherController {
           return sendError(res, 404, "Teacher not found");
         }
         const update =
-          "update teacher set tType=?,tName=?,tSurname=?,age=?,gender=?,tel=?,updatedAt=?";
+          "update teacher set tType=?,tName=?,tSurname=?,age=?,gender=?,tel=?,updatedAt=? where tUuid=?";
         con.query(
           update,
-          [tType, tName, tSurname, age, gender, tel, date],
+          [tType, tName, tSurname, age, gender, tel, date,tUuid],
           function (err2) {
             if (err2) throw err2;
             return sendSuccess(res, SMessage.update);
